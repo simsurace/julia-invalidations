@@ -1,3 +1,4 @@
+# Custom version of julia-actions/julia-invalidations@v1
 name: Invalidations
 description: 'Evaluate number of invalidations'
 
@@ -18,24 +19,10 @@ outputs:
 runs:
   using: "composite"
   steps: 
-    - name: Get package name
-      id: info
-      run: |
-          REPONAME="${{ github.event.repository.name }}"
-          PACKAGENAME=${REPONAME%.jl}
-          echo "::set-output name=packagename::$PACKAGENAME"
-          if [[ '${{ inputs.test_script }}' == '' ]]; then
-            TESTSCRIPT="using ${PACKAGENAME}"
-          else
-            TESTSCRIPT="${{ inputs.test_script }}"
-          fi
-          echo "::set-output name=testscript::$TESTSCRIPT"
-      shell: bash
-      
     - name: Install SnoopCompile tools
       run: julia --project -e 'using Pkg; Pkg.add(["SnoopCompileCore", "SnoopCompile"])'
       shell: bash
     - name: Load package on branch
       id: invs
-      run: julia --project -e 'using SnoopCompileCore; invalidations = @snoopr begin ${{ steps.info.outputs.testscript }} end; using SnoopCompile; inv_owned = length(filtermod(${{ steps.info.outputs.packagename }}, invalidation_trees(invalidations))); inv_total = length(uinvalidated(invalidations)); inv_deps = inv_total - inv_owned; @show inv_total, inv_deps; println("::set-output name=total::$(inv_total)");  println("::set-output name=deps::$(inv_deps)")'
-      shell: bash    
+      run: julia --project -e 'using SnoopCompileCore; invalidations = @snoopr begin using AITimeseries end; using SnoopCompile; inv_owned = length(filtermod(AITimeseries, invalidation_trees(invalidations))); inv_total = length(uinvalidated(invalidations)); inv_deps = inv_total - inv_owned; @show inv_total, inv_deps; println("::set-output name=total::$(inv_total)");  println("::set-output name=deps::$(inv_deps)")'
+      shell: bash 
